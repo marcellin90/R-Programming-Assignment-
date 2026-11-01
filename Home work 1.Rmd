@@ -1,0 +1,154 @@
+---
+title: "Home work 1"
+author: "MUSHIMIYIMANA Marcellin"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+  pdf_document:
+    toc: true
+---
+
+
+# HW1: IMPORT DATA FROM STATISTICAL PACKAGES AND DBMS
+
+# PART 1: IMPORT DATA FROM BUILT-IN STATISTICAL DATASETS
+
+# 1. Load built-in datasets
+library(datasets)
+
+# 2. Import iris dataset
+data(iris)
+
+# 3. View the dataset
+View(iris)
+
+# 4. Display first 10 observations
+head(iris, 10)
+
+# 5. Display dataset structure
+str(iris)
+
+# 6. Summary statistics
+summary(iris)
+
+# 7. Number of rows and columns
+nrow(iris)
+ncol(iris)
+
+# 8. Average sepal length
+mean(iris$Sepal.Length)
+
+# 9. Average sepal width
+mean(iris$Sepal.Width)
+
+
+# PART 2: IMPORT DATA FROM AN EXTERNAL STATISTICAL PACKAGE
+
+# 1. Install package (run only when not installed)
+if (!requireNamespace("nycflights13", quietly = TRUE)) {
+  install.packages("nycflights13")
+}
+
+# 2. Load package
+library(nycflights13)
+
+# 3. Import flights dataset
+data("flights", package = "nycflights13")
+
+# 4. View dataset
+View(flights)
+
+# 5. Display first 15 observations
+head(flights, 15)
+
+# 6. Display structure
+str(flights)
+
+# 7. Summary statistics
+summary(flights)
+
+# 8. Number of observations
+nrow(flights)
+
+# 9. Number of variables
+ncol(flights)
+
+# 10. Calculate average arrival delay
+mean(flights$arr_delay, na.rm = TRUE)
+
+
+## IMPORTING DATA FROM DATABASE
+
+install.packages(c("DBI", "RMariaDB", "dplyr"))
+
+library(DBI)
+library(RMariaDB)
+library(dplyr)
+
+con <- dbConnect(
+  MariaDB(),
+  host     = "localhost",
+  port     = 3306,
+  user     = "root",
+  password = "",             
+  dbname   = "beauty_saloon"
+)
+
+dbListTables(con)              
+dbListFields(con, "employees") 
+
+# a) read all table 
+employees <- dbReadTable(con, "employees")
+head(employees)
+str(employees)
+
+# b) read using SQL query
+active <- dbGetQuery(con, "
+  SELECT full_name, specialization, telephone, status
+  FROM employees
+  ORDER BY full_name
+")
+print(active)
+
+# c) Read using dplyr
+emp_tbl <- tbl(con, "employees")
+
+by_spec <- emp_tbl %>%
+  group_by(specialization) %>%
+  summarise(abakozi = n()) %>%
+  collect()
+print(by_spec)
+
+# Close connection
+dbDisconnect(con)
+
+## Import data in CSV Format
+
+# Install packages (run once)
+install.packages(c("readr", "dplyr", "janitor", "DBI", "RMariaDB"))
+
+# Load packages
+library(readr)
+library(dplyr)
+library(janitor)
+library(DBI)
+library(RMariaDB)
+install.packages("nycflights13")
+library(nycflights13)
+library(nycflights13)
+install.packages("tidyverse")
+
+getwd()
+
+library(readr)
+
+ecommerce_sales_raw <- read_csv(
+  "ecommerce_sales_raw.csv",
+  show_col_types = FALSE
+)
+
+View(ecommerce_sales_raw)
