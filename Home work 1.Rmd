@@ -152,3 +152,19 @@ ecommerce_sales_raw <- read_csv(
 )
 
 View(ecommerce_sales_raw)
+
+# Install package
+install.packages("haven")
+ 
+# Load package
+library(haven)
+
+# Import SPSS file
+survey <- read_sav("survey.sav")
+
+# View dataset
+View(survey)
+
+
+
+
