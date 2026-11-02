@@ -11,7 +11,11 @@ output:
   pdf_document:
     toc: true
 ---
+# Student information
 
+- **Name:**   MUSHIMIYIMANA Marcellin
+- **Student ID:** 20252MBI031
+- **Course:** R for Data Science
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE,
                       fig.width = 7, fig.height = 4.5)
@@ -25,11 +29,7 @@ Open this file in RStudio and run chunks one by one (**Ctrl+Shift+Enter** inside
 # install.packages("tidyverse")   # once only
 library(tidyverse)   # dplyr, tidyr, ggplot2, readr, purrr, stringr, forcats, lubridate
 ```
-# Student information
 
-- **Name:**   MUSHIMIYIMANA Marcellin
-- **Student ID:** 20252MBI031
-- **Course:** R for Data Science
 
 # 1. Introduction to R
 
