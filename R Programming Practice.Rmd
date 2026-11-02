@@ -1,705 +1,153 @@
----
 
-title: "R Programming Assessment work"
 
-date: "`r Sys.Date()`"
-output:
-  html_document:
-    toc: true
-    toc_depth: 3
----
+# HW1: IMPORT DATA FROM STATISTICAL PACKAGES AND DBMS
 
-# Student information
+# PART 1: IMPORT DATA FROM BUILT-IN STATISTICAL DATASETS
 
-- **Name:**   MUSHIMIYIMANA Marcellin
-- **Student ID:** 20252MBI031
-- **Course:** R for Data Science
+# 1. Load built-in datasets
+library(datasets)
 
-# 1. Introduction to R
+# 2. Import iris dataset
+data(iris)
 
-R is a programming language and software environment used for statistical computing, data analysis, and data visualization.
-```{r calculator}
-# Basic calculations
-20 + 10
-50 - 8
-30 * 20
-90 / 3
-6^4
-```
+# 3. View the dataset
+View(iris)
 
-# 2. Data structures in R
+# 4. Display first 10 observations
+head(iris, 10)
 
-## 2.1 Vectors
+# 5. Display dataset structure
+str(iris)
 
-A vector stores values of the same basic type.
+# 6. Summary statistics
+summary(iris)
 
-```{r vectors}
-# Numeric vector
-study_hours <- c(2.5, 3, 4, 1.5, 5)
-summary(study_hours)
+# 7. Number of rows and columns
+nrow(iris)
+ncol(iris)
 
-# Calculate the average study time
-mean(study_hours)
+# 8. Average sepal length
+mean(iris$Sepal.Length)
 
-# Logical vector
-passed <- c(TRUE, TRUE, FALSE, TRUE)
+# 9. Average sepal width
+mean(iris$Sepal.Width)
 
-# Character vector
-students <- c("Marcellin", "Muhoza", "Alice", "Josianne")
 
-# Integer vector
-days <- 1:7
+# PART 2: IMPORT DATA FROM AN EXTERNAL STATISTICAL PACKAGE
 
-# Complex vector
-complex_values <- c(4 + 2i, 3 + 2i)
+# 1. Install package (run only when not installed)
+if (!requireNamespace("nycflights13", quietly = TRUE)) {
+  install.packages("nycflights13")
+}
 
-# Check the type of a vector
-class(study_hours)
-```
+# 2. Load package
+library(nycflights13)
 
-## 2.2 Matrices
+# 3. Import flights dataset
+data("flights", package = "nycflights13")
 
-A matrix stores data in rows and columns. All its values should have the same basic type.
+# 4. View dataset
+View(flights)
 
-```{r matrices}
-# Create a matrix with 2 rows and 3 columns
-x <- matrix(1:6, nrow = 2, ncol = 3)
-x
+# 5. Display first 15 observations
+head(flights, 15)
 
-# Create another matrix
-y <- matrix(1:6, nrow = 3, ncol = 2)
-y
+# 6. Display structure
+str(flights)
 
-# Multiply the two matrices
-x %*% y
-```
+# 7. Summary statistics
+summary(flights)
 
-## 2.3 Lists
+# 8. Number of observations
+nrow(flights)
 
-A list can store different types of values together.
+# 9. Number of variables
+ncol(flights)
 
-```{r lists}
-# Create a list with different types of information
-student_info <- list(
-  name = "Marcellin",
-  age = 25,
-  registered = TRUE,
-  score = 80 + 2i
+# 10. Calculate average arrival delay
+mean(flights$arr_delay, na.rm = TRUE)
+
+
+## IMPORTING DATA FROM DATABASE
+
+install.packages(c("DBI", "RMariaDB", "dplyr"))
+
+library(DBI)
+library(RMariaDB)
+library(dplyr)
+
+con <- dbConnect(
+  MariaDB(),
+  host     = "localhost",
+  port     = 3306,
+  user     = "root",
+  password = "",             
+  dbname   = "beauty_saloon"
 )
 
-student_info
+dbListTables(con)              
+dbListFields(con, "employees") 
 
-# Access the student's name
-student_info[[1]]
-```
+# a) read all table 
+employees <- dbReadTable(con, "employees")
+head(employees)
+str(employees)
 
-## 2.4 Factors
+# b) read using SQL query
+active <- dbGetQuery(con, "
+  SELECT full_name, specialization, telephone, status
+  FROM employees
+  ORDER BY full_name
+")
+print(active)
 
-A factor is used to represent categories.
+# c) Read using dplyr
+emp_tbl <- tbl(con, "employees")
 
-```{r factors}
-# Record whether students completed an assignment
-assignment_status <- factor(
-  c("Completed", "Completed", "Not completed", "Completed", "Not completed")
+by_spec <- emp_tbl %>%
+  group_by(specialization) %>%
+  summarise(abakozi = n()) %>%
+  collect()
+print(by_spec)
+
+# Close connection
+dbDisconnect(con)
+
+## Import data in CSV Format
+
+# Install packages (run once)
+install.packages(c("readr", "dplyr", "janitor", "DBI", "RMariaDB"))
+
+# Load packages
+library(readr)
+library(dplyr)
+library(janitor)
+library(DBI)
+library(RMariaDB)
+install.packages("nycflights13")
+library(nycflights13)
+library(nycflights13)
+install.packages("tidyverse")
+
+getwd()
+
+library(readr)
+
+ecommerce_sales_raw <- read_csv(
+  "ecommerce_sales_raw.csv",
+  show_col_types = FALSE
 )
 
-assignment_status
-levels(assignment_status)
-```
+View(ecommerce_sales_raw)
 
-## 2.5 Missing values
-
-R uses `NA` to represent missing information.
-
-```{r missing-values}
-# Create a vector with one missing value
-scores <- c(60, 84, NA, 85, 78)
-
-# Identify the missing value
-is.na(scores)
-
-# Remove missing values when calculating the average
-mean(scores, na.rm = TRUE)
-```
-
-```{r complete-cases}
-# Check which rows have complete information
-height <- c(160, 155, NA, 140, 185)
-weight <- c(68, 58, 70, NA, 70)
-
-complete.cases(height, weight)
-```
-
-## 2.6 Coercion
-
-R converts values to a common type when different types are combined in one vector.
-
-```{r coercion}
-# Numbers become characters when text is included
-mixed_values <- c(10, 20, "thirty")
-mixed_values
-
-# TRUE is counted as 1 and FALSE as 0
-sum(c(TRUE, TRUE, FALSE, TRUE))
-```
-
-# 3. Creating a data frame
-
-A data frame stores different types of information in separate columns.
-
-```{r create-data}
-# Create information about five students
-student_id <- 1:5
-student_name <- c("Eric", "Aline", "Patrick", "Diane", "Claude")
-height <- c(170, 165, 180, 158, 175)
-weight <- c(65, 58, 78, 52, 72)
-gender <- c("M", "F", "M", "F", "M")
-
-# Combine the columns into one data frame
-student_data <- data.frame(
-  student_id, student_name, gender, height, weight
-)
-
-student_data
-```
-
-## 3.1 Entering data manually
-
-You can also create an empty data frame and enter information using R's editor.
-
-```{r manual-data, eval=FALSE}
-# Create an empty data frame
-health_data <- data.frame(
-  height = numeric(0),
-  weight = numeric(0),
-  bmi = numeric(0)
-)
-
-# Open the data editor
-health_data <- edit(health_data)
-```
-
-# 4. Data importation
-
-R can import information from text files, spreadsheets, statistical software and databases.
-
-## 4.1 Import a text file
-
-```{r import-text, eval=FALSE}
-# Read a text file from your computer
-class_data <- read.table("class_data.txt", header = TRUE)
-
-# Display the variable names
-variable.names(class_data)
-
-# Display the first and last rows
-head(class_data)
-tail(class_data)
-
-# Select rows 5 to 10
-class_data[5:10, ]
-```
-
-## 4.2 Import an Excel file
-
-```{r import-excel, eval=FALSE}
-# Install readxl once if it is not installed
-install.packages("readxl")
-
-# Import an Excel file
-excel_data <- readxl::read_excel("class_data.xlsx")
-
-# Display the first rows
-head(excel_data)
-```
-
-## 4.3 Import data from statistical software
-
-```{r import-statistical, eval=FALSE}
-# Install haven once if it is not installed
+# Install package
 install.packages("haven")
-
-# Import an SPSS file
-spss_data <- haven::read_sav("class_data.sav")
-
-# Import a Stata file
-stata_data <- haven::read_dta("class_data.dta")
-
-# Import a SAS file
-sas_data <- haven::read_sas("class_data.sas7bdat")
-```
-
-## 4.4 Import data from a database
-
-```{r import-database, eval=FALSE}
-# Install the packages needed for PostgreSQL
-install.packages(c("DBI", "RPostgres"))
-
-# Connect to your PostgreSQL database
-connection <- DBI::dbConnect(
-  RPostgres::Postgres(),
-  dbname = "your_database",
-  host = "localhost",
-  port = 5432,
-  user = "your_username",
-  password = "your_password"
-)
-
-# List the tables in the database
-DBI::dbListTables(connection)
-
-# Read a table
-database_data <- DBI::dbReadTable(connection, "students")
-
-# Close the connection
-DBI::dbDisconnect(connection)
-```
-
-## 4.5 Use a dataset already available in R
-
-```{r built-in-data}
-# List datasets available in R
-data()
-
-# Load the airquality dataset
-data("airquality")
-
-# Check its variables and structure
-variable.names(airquality)
-str(airquality)
-head(airquality)
-```
-
-# 5. Exploring and describing data
-
-We can use R to understand the size, structure and contents of a dataset.
-
-```{r explore-data}
-# Display the student dataset
-student_data
-
-# Check the summary of each variable
-summary(student_data)
-
-# Check the structure
-str(student_data)
-
-# Count rows and columns
-nrow(student_data)
-ncol(student_data)
-
-# Count the number of weight values
-length(student_data$weight)
-```
-
-## 5.1 Select rows and columns
-
-```{r select-data}
-# Select rows 2 to 4
-student_data[2:4, ]
-
-# Select only the weight column
-student_data$weight
-
-# Select the height column using its position
-student_data[, 4]
-
-# Select all columns except student_id
-student_data[, -1]
-```
-
-## 5.2 Summary statistics
-
-```{r summary-statistics}
-# Summarize the weight variable
-summary(student_data$weight)
-
-# Calculate the mean and standard deviation of height
-mean(student_data$height)
-sd(student_data$height)
-
-# Calculate the mean and standard deviation of weight
-mean(student_data$weight)
-sd(student_data$weight)
-
-# Calculate the average of each row
-apply(student_data[, c("height", "weight")], 1, mean)
-
-# Calculate the standard deviation of each column
-apply(student_data[, c("height", "weight")], 2, sd)
-```
-
-# 6. Comparing categories and numerical values
-
-The iris dataset helps us compare flower measurements across species.
-
-```{r iris-data}
-# Load the iris dataset
-data("iris")
-
-# View the first rows
-head(iris)
-
-# Calculate the average petal length
-mean(iris$Petal.Length)
-```
-
-## 6.1 Calculate statistics by group
-
-```{r iris-groups}
-# Average petal length for each species
-by(iris$Petal.Length, iris$Species, mean)
-
-# Standard deviation for each species
-by(iris$Petal.Length, iris$Species, sd)
-
-# Full summary for each species
-by(iris$Petal.Length, iris$Species, summary)
-```
-
-## 6.2 Boxplot
-
-A boxplot compares a numerical variable across categories.
-
-```{r iris-boxplot}
-# Compare sepal length across flower species
-boxplot(
-  Sepal.Length ~ Species,
-  data = iris,
-  main = "Sepal Length by Flower Species",
-  xlab = "Species",
-  ylab = "Sepal length"
-)
-```
-
-# 7. Comparing two categorical variables
-
-The built-in UCBAdmissions dataset contains university admission information.
-
-```{r admissions-data}
-# Convert the dataset into a data frame
-admissions <- data.frame(UCBAdmissions)
-
-# View the first rows
-head(admissions)
-
-# Create a table of gender and admission outcome
-admission_table <- xtabs(Freq ~ Gender + Admit, data = admissions)
-admission_table
-
-# Calculate admission proportions for each gender
-prop.table(admission_table, 1)
-```
-
-# 8. Bar charts
-
-Bar charts help compare values across categories.
-
-```{r bar-chart}
-# Create a small dataset of monthly sales
-sales <- data.frame(
-  Product_A = c(100, 120),
-  Product_B = c(50, 60),
-  Product_C = c(70, 90),
-  Product_D = c(80, 75)
-)
-
-# Draw bars side by side
-barplot(
-  as.matrix(sales),
-  beside = TRUE,
-  main = "Product Sales Comparison",
-  ylab = "Sales"
-)
-```
-
-```{r second-bar-chart}
-# Create another dataset for four branches
-branch_sales <- data.frame(
-  Branch_A = c(10, 20, 30, 25),
-  Branch_B = c(15, 25, 35, 20),
-  Branch_C = c(20, 30, 25, 40)
-)
-
-# Compare sales across branches
-barplot(
-  as.matrix(branch_sales),
-  main = "Sales by Branch",
-  ylab = "Sales"
-)
-```
-
-# 9. Scatter plots and correlation
-
-A scatter plot helps us see how two numerical variables move together.
-
-```{r scatter-plots}
-# Plot weight against height
-plot(weight ~ height, data = student_data)
-
-# Create the same plot using column names
-plot(student_data$height, student_data$weight)
-
-# Add a title to the graph
-plot(
-  student_data$height,
-  student_data$weight,
-  main = "Relationship Between Height and Weight",
-  xlab = "Height (cm)",
-  ylab = "Weight (kg)"
-)
-```
-
-```{r correlation}
-# Calculate the correlation between height and weight
-cor(student_data$height, student_data$weight)
-```
-
-# 10. Linear models
-
-A linear model helps us examine the relationship between two numerical variables.
-
-```{r linear-model}
-# Estimate weight using height
-weight_model <- lm(weight ~ height, data = student_data)
-
-# Display the model results
-summary(weight_model)
-```
-
-```{r linear-model-plot}
-# Plot the observations
-plot(
-  weight ~ height,
-  data = student_data,
-  main = "Height and Weight"
-)
-
-# Add the fitted straight line
-abline(weight_model)
-```
-
-```{r model-diagnostics}
-# Display diagnostic plots for the model
-par(mfrow = c(2, 2))
-plot(weight_model)
-par(mfrow = c(1, 1))
-```
-
-```{r smooth-line}
-# Add a smooth line to the scatter plot
-plot(weight ~ height, data = student_data)
-abline(weight_model)
-lines(
-  lowess(student_data$height, student_data$weight),
-  col = "pink"
-)
-```
-
-# 11. Data management: creating new variables
-
-We can calculate a new variable using existing columns.
-
-```{r create-bmi}
-# Calculate BMI using height in metres
-student_data$BMI <- round(
-  student_data$weight / (student_data$height / 100)^2,
-  digits = 2
-)
-
-# Display the dataset with BMI
-student_data
-
-# Display the first and last rows
-head(student_data, n = 3)
-tail(student_data, n = 3)
-
-# Summarize BMI
-summary(student_data$BMI)
-
-# Display BMI values in a stem-and-leaf plot
-stem(student_data$BMI)
-```
-
-# 12. Working with dates
-
-R can store dates and calculate the time between them.
-
-```{r dates}
-# Get today's date
-today <- Sys.Date()
-today
-
-# Display the month, day and year
-format(today, format = "%B %d %Y")
-
-# Display the day of the week
-format(today, format = "%A")
-
-# Calculate the difference between two dates
-course_start <- as.Date("2026-10-18")
-course_end <- as.Date("2026-12-18")
-
-course_end - course_start
-```
-
-# 13. Subsetting and managing data
-
-We will use a fictional survey about leadership and decision-making.
-
-Participants answered five questions using this scale:
-
-- 1 = Strongly disagree
-- 2 = Disagree
-- 3 = Neither agree nor disagree
-- 4 = Agree
-- 5 = Strongly agree
-
-```{r leadership-data}
-# Create the survey information
-manager_id <- 1:6
-country <- c("Rwanda", "Rwanda", "Kenya", "Kenya", "Uganda", "Uganda")
-gender <- c("M", "F", "F", "M", "F", "M")
-age <- c(29, 42, 31, 38, 99, 34)
-
-# Answers to five leadership questions
-q1 <- c(5, 3, 4, 3, 2, 4)
-q2 <- c(4, 5, 5, 3, 2, 4)
-q3 <- c(5, 2, 4, 4, 1, 5)
-q4 <- c(5, 5, 4, NA, 2, 4)
-q5 <- c(4, 5, 3, NA, 1, 5)
-
-# Combine the information into a data frame
-leadership <- data.frame(
-  manager_id, country, gender, age,
-  q1, q2, q3, q4, q5
-)
-
-leadership
-str(leadership)
-names(leadership)
-```
-
-## 13.1 Handle missing values
-
-In this example, age `99` means the participant did not provide their age.
-
-```{r leadership-missing}
-# Replace 99 with NA
-leadership$age[leadership$age == 99] <- NA
-
-# Check missing values
-is.na(leadership)
-
-# Remove rows that contain missing values
-complete_leadership <- na.omit(leadership)
-
-complete_leadership
-```
-
-## 13.2 Create age groups
-
-```{r age-groups}
-# Create an empty age category column
-leadership$age_group <- NA_character_
-
-# Categorize participants by age
-leadership$age_group[leadership$age < 35] <- "Young"
-
-leadership$age_group[
-  leadership$age >= 35 & leadership$age <= 75
-] <- "Middle aged"
-
-leadership$age_group[leadership$age > 75] <- "Elder"
-
-leadership
-```
-
-## 13.3 Combine the five question scores
-
-```{r combine-scores}
-# Calculate the total score for each participant
-leadership$total_score <- rowSums(
-  leadership[, c("q1", "q2", "q3", "q4", "q5")],
-  na.rm = TRUE
-)
-
-leadership
-```
-
-## 13.4 Sort the data
-
-```{r sort-leadership}
-# Show the order of participants by age
-order(leadership$age)
-
-# Sort participants from youngest to oldest
-sorted_leadership <- leadership[order(leadership$age), ]
-
-sorted_leadership
-```
-
-## 13.5 Merge two data frames
-
-```{r merge-data}
-# Create another dataset with the same manager IDs
-department_info <- data.frame(
-  manager_id = 1:6,
-  department = c("Finance", "HR", "IT", "Operations", "Finance", "IT")
-)
-
-# Join both datasets using manager_id
-leadership_full <- merge(
-  leadership,
-  department_info,
-  by = "manager_id"
-)
-
-leadership_full
-```
-
-## 13.6 Select and remove columns
-
-```{r select-columns}
-# Select only the five question columns
-question_data <- leadership[, c("q1", "q2", "q3", "q4", "q5")]
-question_data
-
-# Remove manager_id and country
-reduced_data <- leadership[, -c(1, 2)]
-reduced_data
-```
-
-## 13.7 Access columns using different methods
-
-```{r access-columns}
-# Access the age column using $
-leadership$age
-
-# Access the fourth column using its position
-leadership[[4]]
-
-# Access selected rows
-leadership[c(1, 3, 5), ]
-```
-
-## 13.8 Filter observations
-
-```{r filter-data}
-# Select participants who are male and older than 30
-male_managers <- subset(
-  leadership,
-  gender == "M" & age > 30
-)
-
-male_managers
-
-# Select participants aged 35 or older or younger than 30
-selected_managers <- subset(
-  leadership,
-  age >= 35 | age < 30,
-  select = c(q1, q2, q3, q4, q5)
-)
-
-selected_managers
-```
+ 
+# Load package
+library(haven)
+
+# Import SPSS file
+survey <- read_sav("survey.sav")
+
+# View dataset
+View(survey)
