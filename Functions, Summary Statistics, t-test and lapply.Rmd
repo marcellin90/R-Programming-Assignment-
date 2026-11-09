@@ -1,0 +1,270 @@
+---
+title: "Functions, Summary Statistics, t-test and lapply"
+output: html_document
+---
+
+## 0. Setup
+
+Load the data.
+
+```{r}
+# Load the built-in mtcars dataset
+data(mtcars)
+
+# Show the first 6 rows to see the variables
+head(mtcars)
+```
+
+## 1. Functions for summary statistics
+
+Mean function.
+
+```{r}
+# Define a function that takes a numeric vector x
+my_mean <- function(x) {
+  # Add up all values and divide by how many there are
+  sum(x) / length(x)
+}
+```
+
+Variance function.
+
+```{r}
+# Define a function that takes a numeric vector x
+my_var <- function(x) {
+  # Compute the mean of x
+  m <- mean(x)
+  # Sum the squared distances from the mean and divide by n - 1
+  sum((x - m)^2) / (length(x) - 1)
+}
+```
+
+Standard deviation function.
+
+```{r}
+# Define a function that takes a numeric vector x
+my_sd <- function(x) {
+  # The standard deviation is the square root of the variance
+  sqrt(my_var(x))
+}
+```
+
+Standard error function.
+
+```{r}
+# Define a function that takes a numeric vector x
+my_se <- function(x) {
+  # Standard error = standard deviation divided by the square root of n
+  my_sd(x) / sqrt(length(x))
+}
+```
+
+Range function.
+
+```{r}
+# Define a function that takes a numeric vector x
+my_range <- function(x) {
+  # Return the largest value minus the smallest value
+  max(x) - min(x)
+}
+```
+
+## 2. Apply the functions to a variable
+
+Apply the mean.
+
+```{r}
+# Apply my_mean to the mpg variable
+my_mean(mtcars$mpg)
+```
+
+Apply the variance.
+
+```{r}
+# Apply my_var to the mpg variable
+my_var(mtcars$mpg)
+```
+
+Apply the standard deviation.
+
+```{r}
+# Apply my_sd to the mpg variable
+my_sd(mtcars$mpg)
+```
+
+Apply the standard error.
+
+```{r}
+# Apply my_se to the mpg variable
+my_se(mtcars$mpg)
+```
+
+Apply the range.
+
+```{r}
+# Apply my_range to the mpg variable
+my_range(mtcars$mpg)
+```
+
+Show that they work.
+
+```{r}
+# Compare my functions with R's built-in functions (each pair should match)
+c(my_mean(mtcars$mpg), mean(mtcars$mpg))
+c(my_var(mtcars$mpg),  var(mtcars$mpg))
+c(my_sd(mtcars$mpg),   sd(mtcars$mpg))
+```
+
+**Result:** each pair prints two identical numbers, which proves the functions work.
+
+Check them with `all.equal()`.
+
+```{r}
+# TRUE means the two results are the same (up to tiny rounding)
+all.equal(my_mean(mtcars$mpg), mean(mtcars$mpg))
+all.equal(my_sd(mtcars$mpg), sd(mtcars$mpg))
+```
+
+## 3. One function that returns all summary statistics
+
+Define it.
+
+```{r}
+# Define a function that returns several statistics at once
+summary_stats <- function(x) {
+  # Put the results in a named vector so each value has a label
+  c(n      = length(x),
+    mean   = my_mean(x),
+    sd     = my_sd(x),
+    se     = my_se(x),
+    min    = min(x),
+    max    = max(x),
+    range  = my_range(x))
+}
+```
+
+Apply it to a variable.
+
+```{r}
+# Apply summary_stats to the mpg variable
+summary_stats(mtcars$mpg)
+```
+
+**Result:** one named vector with n = 32 and the mean, sd, se, min, max, and range of mpg.
+
+## 4. Function for the two-sample t-test (Welch)
+
+Define it.
+
+```{r}
+# Define a function that takes two numeric vectors x and y
+two_sample_t <- function(x, y) {
+  # Sample sizes of each group
+  n1 <- length(x)
+  n2 <- length(y)
+  # Means of each group
+  m1 <- mean(x)
+  m2 <- mean(y)
+  # Variances of each group
+  v1 <- var(x)
+  v2 <- var(y)
+  # Standard error of the difference between the means
+  se <- sqrt(v1 / n1 + v2 / n2)
+  # t statistic = difference in means divided by its standard error
+  t_stat <- (m1 - m2) / se
+  # Welch-Satterthwaite degrees of freedom
+  df <- (v1 / n1 + v2 / n2)^2 /
+        ((v1 / n1)^2 / (n1 - 1) + (v2 / n2)^2 / (n2 - 1))
+  # Two-sided p-value from the t distribution
+  p_value <- 2 * pt(-abs(t_stat), df)
+  # 95% confidence interval for the difference in means
+  ci <- (m1 - m2) + c(-1, 1) * qt(0.975, df) * se
+  # Return everything in a list
+  list(mean_x = m1, mean_y = m2, t = t_stat, df = df,
+       p_value = p_value, conf_low = ci[1], conf_high = ci[2])
+}
+```
+
+Split the data into two groups.
+
+```{r}
+# mpg of automatic cars (am = 0)
+auto <- mtcars$mpg[mtcars$am == 0]
+
+# mpg of manual cars (am = 1)
+manual <- mtcars$mpg[mtcars$am == 1]
+```
+
+Apply the function.
+
+```{r}
+# Apply my t-test function to the two groups
+two_sample_t(auto, manual)
+```
+
+Show that it works.
+
+```{r}
+# Run R's built-in Welch t-test on the same groups
+t.test(auto, manual)
+```
+
+**Result:** the t statistic, degrees of freedom, p-value, and confidence interval from `two_sample_t()` match the built-in `t.test()` output. A p-value below 0.05 means the mean mpg differs between automatic and manual cars.
+
+## 5. lapply()
+
+`lapply(x, f, ...)` takes a list `x` and a function `f`, applies `f` to each element, and returns a new list.
+
+Make a list of variables.
+
+```{r}
+# Put three variables into a named list
+vars_list <- list(mpg = mtcars$mpg, hp = mtcars$hp, wt = mtcars$wt)
+```
+
+Apply a built-in function with lapply.
+
+```{r}
+# Apply mean to every element of the list (returns a list)
+lapply(vars_list, mean)
+```
+
+Apply my own function with lapply.
+
+```{r}
+# Apply my summary_stats function to every element of the list
+lapply(vars_list, summary_stats)
+```
+
+**Result:** a list with three elements (mpg, hp, wt), each holding its own summary statistics.
+
+Apply the t-test function to several variables.
+
+```{r}
+# Names of the variables we want to compare between transmission types
+test_vars <- c("mpg", "hp", "wt", "disp")
+
+# For each variable, run my t-test on automatic (am = 0) vs manual (am = 1)
+t_results <- lapply(test_vars, function(v) {
+  two_sample_t(mtcars[mtcars$am == 0, v], mtcars[mtcars$am == 1, v])
+})
+
+# Name each result with its variable
+names(t_results) <- test_vars
+```
+
+View the results.
+
+```{r}
+# Show the full t-test result for every variable
+t_results
+```
+
+Extract only the p-values.
+
+```{r}
+# Pull out the p-value from each result (lapply returns a list)
+lapply(t_results, function(r) r$p_value)
+```
+
+**Result:** a list of four p-values, one for each variable. Those below 0.05 show a significant difference between automatic and manual cars.
