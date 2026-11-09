@@ -1,0 +1,128 @@
+---
+title: "Multiple Linear Regression: mtcars"
+author: "MUSHIMIYIMANA Marcellin"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+  pdf_document:
+    toc: true
+---
+
+## 1. Load and inspect the data
+
+Load the built-in dataset.
+
+```{r}
+# Load the built-in mtcars dataset into the session
+data(mtcars)
+```
+
+Look at the first rows.
+
+```{r}
+# Show the first 6 rows so we can see the columns and their values
+head(mtcars)
+```
+
+Check the structure of the data.
+
+```{r}
+# Show each variable's type and a preview of its values
+str(mtcars)
+```
+
+Summarize the variables we will use.
+
+```{r}
+# Print min, quartiles, median, mean, and max for mpg, wt, and hp
+summary(mtcars[, c("mpg", "wt", "hp")])
+```
+
+## 2. Explore relationships
+
+Scatterplot matrix.
+
+```{r}
+# Plot every pair of variables to check for roughly linear relationships
+pairs(mtcars[, c("mpg", "wt", "hp")])
+```
+
+Correlation matrix.
+
+```{r}
+# Compute pairwise correlations (values near -1 or 1 mean strong linear relationships)
+cor(mtcars[, c("mpg", "wt", "hp")])
+```
+
+## 3. Fit the model
+
+Fit the multiple linear regression.
+
+```{r}
+# Fit a linear model: predict mpg from wt (weight) and hp (horsepower)
+model <- lm(mpg ~ wt + hp, data = mtcars)
+```
+
+View the results.
+
+```{r}
+# Show coefficients, p-values, R-squared, and the overall F-test
+summary(model)
+```
+
+Confidence intervals.
+
+```{r}
+# Show 95% confidence intervals for the intercept and each slope
+confint(model)
+```
+
+## 4. Check assumptions
+
+Diagnostic plots.
+
+
+```{r}
+# Set the plotting area to a 2x2 grid so all four plots show together
+par(mfrow = c(4, 4))
+
+# Draw the four standard diagnostic plots for the model
+# (residuals vs fitted, Q-Q, scale-location, residuals vs leverage)
+plot(model)
+
+```
+
+Load the package for multicollinearity.
+
+```{r}
+# Load the car package (run install.packages("car") once if it is missing)
+install.packages("car")
+library(car)
+```
+
+Multicollinearity check.
+
+```{r}
+# Compute variance inflation factors (values above about 5 suggest a problem)
+vif(model)
+```
+
+Normality of residuals.
+
+```{r}
+# Test whether residuals are normal (p > 0.05 means no evidence against normality)
+shapiro.test(residuals(model))
+```
+
+## 5. Interpretation
+
+- **Intercept:** The predicted mpg for a car with weight 0 and horsepower 0. It is not realistic, just a baseline for the line.
+- **wt:** Holding horsepower constant, each additional 1000 lbs is associated with about a 3.9 mpg decrease.
+- **hp:** Holding weight constant, each additional horsepower is associated with about a 0.03 mpg decrease.
+- **R²:** Weight and horsepower together explain about 83% of the variation in mpg.
+- **Assumptions:** (describe what you see in the diagnostic plots, VIF, and Shapiro test)
+- **Caveat:** These are associations, not causation, and the data is only 32 cars from 1974.
