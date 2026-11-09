@@ -1,0 +1,179 @@
+---
+title: "ggplot2 Geoms: mtcars"
+author: "MUSHIMIYIMANA Marcellin"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+  pdf_document:
+    toc: true
+---
+
+## 0. Setup
+
+Load the package.
+
+```{r}
+# Load ggplot2 (run install.packages("ggplot2") once if it is missing)
+install.packages("ggplot2")
+library(ggplot2)
+```
+
+Prepare the data.
+
+```{r}
+# Load the built-in mtcars dataset
+data(mtcars)
+
+# Turn cylinders into a factor so it is treated as a category
+mtcars$cyl_f <- factor(mtcars$cyl)
+
+# Copy the car names (row names) into a column so we can label points
+mtcars$car <- rownames(mtcars)
+```
+
+## 1. geom_bar()
+
+```{r}
+# Start a plot with cylinder category on the x-axis
+ggplot(mtcars, aes(x = cyl_f)) +
+  # Draw bars whose height is the number of cars in each category
+  geom_bar() +
+  # Add a title and axis labels
+  labs(title = "geom_bar: cars per cylinder", x = "Cylinders", y = "Count")
+```
+
+**Result:** 3 bars: 4 cylinders = 11 cars, 6 cylinders = 7 cars, 8 cylinders = 14 cars.
+
+## 2. geom_boxplot()
+
+```{r}
+# Start a plot with cylinders on x and mpg on y
+ggplot(mtcars, aes(x = cyl_f, y = mpg)) +
+  # Draw one boxplot per cylinder group (median, quartiles, outliers)
+  geom_boxplot() +
+  # Add a title and axis labels
+  labs(title = "geom_boxplot: mpg by cylinders", x = "Cylinders", y = "mpg")
+```
+
+**Result:** mpg drops as cylinders increase (median about 26 for 4, 19.7 for 6, 15.2 for 8).
+
+## 3. geom_density()
+
+```{r}
+# Start a plot using only mpg on the x-axis
+ggplot(mtcars, aes(x = mpg)) +
+  # Draw a smooth curve showing how mpg values are distributed
+  geom_density() +
+  # Add a title and axis labels
+  labs(title = "geom_density: distribution of mpg", x = "mpg", y = "Density")
+```
+
+**Result:** a smooth curve with its peak around 15 to 20 mpg and a longer tail to the right.
+
+## 4. geom_histogram()
+
+```{r}
+# Start a plot using only mpg on the x-axis
+ggplot(mtcars, aes(x = mpg)) +
+  # Draw bars that count how many cars fall in each mpg bin (10 bins)
+  geom_histogram(bins = 10) +
+  # Add a title and axis labels
+  labs(title = "geom_histogram: distribution of mpg", x = "mpg", y = "Count")
+```
+
+**Result:** most cars fall between about 15 and 22 mpg, with fewer very efficient cars.
+
+## 5. geom_hline()
+
+```{r}
+# Start a plot with weight on x and mpg on y
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  # Draw a horizontal line at the average mpg
+  geom_hline(yintercept = mean(mtcars$mpg), color = "red") +
+  # Add a title and axis labels
+  labs(title = "geom_hline: average mpg", x = "Weight", y = "mpg")
+```
+
+**Result:** one red horizontal line at y = 20.09 (the mean mpg). It is the only layer here, so there are no points.
+
+## 6. geom_jitter()
+
+```{r}
+# Start a plot with cylinders on x and mpg on y
+ggplot(mtcars, aes(x = cyl_f, y = mpg)) +
+  # Draw each car as a point, shifted randomly sideways so points don't overlap
+  geom_jitter(width = 0.2) +
+  # Add a title and axis labels
+  labs(title = "geom_jitter: mpg by cylinders", x = "Cylinders", y = "mpg")
+```
+
+**Result:** 32 points spread in 3 columns. Their positions shift slightly each time you run it because the jitter is random.
+
+## 7. geom_line()
+
+```{r}
+# Start a plot with weight on x and mpg on y
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  # Connect the observations with a line, ordered by weight
+  geom_line() +
+  # Add a title and axis labels
+  labs(title = "geom_line: mpg vs weight", x = "Weight", y = "mpg")
+```
+
+**Result:** a zigzag line that trends downward, meaning heavier cars have lower mpg.
+
+## 8. geom_rug()
+
+```{r}
+# Start a plot with weight on x and mpg on y
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  # Draw small tick marks on both axes at every observed value
+  geom_rug() +
+  # Add a title and axis labels
+  labs(title = "geom_rug: where the data lies", x = "Weight", y = "mpg")
+```
+
+**Result:** tick marks along the bottom and left edges, denser where more cars have similar values.
+
+## 9. geom_text()
+
+```{r}
+# Start a plot with weight on x, mpg on y, and car names as labels
+ggplot(mtcars, aes(x = wt, y = mpg, label = car)) +
+  # Write each car's name at its position (small font so labels fit)
+  geom_text(size = 3) +
+  # Add a title and axis labels
+  labs(title = "geom_text: car names", x = "Weight", y = "mpg")
+```
+
+**Result:** each car's name appears at its (weight, mpg) position, so you can see which car is which.
+
+## 10. geom_violin()
+
+```{r}
+# Start a plot with cylinders on x and mpg on y
+ggplot(mtcars, aes(x = cyl_f, y = mpg)) +
+  # Draw a mirrored density shape for each group
+  geom_violin() +
+  # Add a title and axis labels
+  labs(title = "geom_violin: mpg by cylinders", x = "Cylinders", y = "mpg")
+```
+
+**Result:** 3 violin shapes. The 4-cylinder one is highest and widest, and the 8-cylinder one sits lowest.
+
+## 11. geom_vline()
+
+```{r}
+# Start a plot with weight on x and mpg on y
+ggplot(mtcars, aes(x = wt, y = mpg)) +
+  # Draw a vertical line at the average weight
+  geom_vline(xintercept = mean(mtcars$wt), color = "blue") +
+  # Add a title and axis labels
+  labs(title = "geom_vline: average weight", x = "Weight", y = "mpg")
+```
+
+**Result:** one blue vertical line at x = 3.22 (the mean weight, in 1000 lbs).
